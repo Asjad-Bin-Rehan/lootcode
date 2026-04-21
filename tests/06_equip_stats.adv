@@ -1,0 +1,12 @@
+# Test 6: Equip Stats
+# Tests: Equip operation to set character stats
+
+stat warrior_hp = 80 hp;
+stat warrior_mp = 30 mp;
+
+narrate "Warrior equipment check:";
+
+equip warrior_hp to 120 hp;
+equip warrior_mp to 50 mp;
+
+narrate "Equipment upgraded! HP: 120, MP: 50";

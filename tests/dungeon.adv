@@ -1,0 +1,22 @@
+item health_potion = 2 qty;
+item sword = 1 qty;
+item herbs = 3 qty;
+stat player_hp = 100 hp;
+stat player_mp = 50 mp;
+
+narrate "Entering the dungeon...";
+
+combine health_potion with herbs;
+rest 2 turns;
+
+equip player_hp to 120 hp;
+equip player_mp to 75 mp;
+
+narrate "Exploring...";
+
+loop 3 iterations {
+    narrate "Combat turn";
+    rest 1 turns;
+}
+
+narrate "Dungeon cleared!";

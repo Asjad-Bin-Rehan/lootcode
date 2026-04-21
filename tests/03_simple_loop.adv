@@ -1,0 +1,11 @@
+# Test 3: Simple Loop
+# Tests: Loop iteration with narration
+
+narrate "Beginning dungeon exploration...";
+
+loop 3 iterations {
+    narrate "Exploring level deeper...";
+    rest 1 turns;
+}
+
+narrate "Reached the treasure chamber!";

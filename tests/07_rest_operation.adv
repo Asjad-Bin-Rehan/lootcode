@@ -1,0 +1,9 @@
+# Test 7: Rest Operation
+# Tests: Rest/wait operation for time delays
+
+narrate "You enter a safe haven...";
+
+narrate "Resting to recover...";
+rest 2 turns;
+
+narrate "Rest complete! You feel refreshed.";

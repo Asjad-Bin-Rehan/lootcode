@@ -1,0 +1,37 @@
+# Test 11: Comprehensive Game
+# Tests: All features combined in a realistic game scenario
+
+item health_potion = 5 qty;
+item mana_potion = 3 qty;
+item treasure_key = 1 qty;
+stat player_hp = 100 hp;
+stat player_mp = 50 mp;
+stat levels_cleared = 0 qty;
+
+narrate "Welcome to the Ancient Ruins!";
+narrate "Your quest: Clear 3 levels and claim the treasure.";
+
+loop 3 iterations {
+    levels_cleared = levels_cleared + 1 qty;
+    narrate "Entering level...";
+    
+    if player_hp > 30 then {
+        narrate "Battle! Health depleted slightly.";
+        player_hp = player_hp - 20 hp;
+    } else {
+        narrate "You drink a healing potion!";
+        health_potion = health_potion - 1 qty;
+        player_hp = 100 hp;
+    }
+    
+    rest 1 turns;
+    narrate "Level complete!";
+}
+
+if levels_cleared == 3 then {
+    narrate "All levels cleared! You found the treasure!";
+} else {
+    narrate "Some levels remain...";
+}
+
+narrate "Adventure complete!";

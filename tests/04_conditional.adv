@@ -1,0 +1,12 @@
+# Test 4: Conditional Logic
+# Tests: If-then-else statement
+
+stat player_hp = 50 hp;
+
+narrate "Player health check...";
+
+if player_hp > 75 then {
+    narrate "Health is excellent!";
+} else {
+    narrate "Health is low! Drink a potion!";
+}

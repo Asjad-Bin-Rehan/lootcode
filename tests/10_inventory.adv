@@ -1,0 +1,25 @@
+# Test 10: Inventory Management
+# Tests: Item acquisition and inventory slots
+
+item sword = 1 qty;
+item shield = 1 qty;
+item gold = 100 qty;
+stat inventory_slots = 3 qty;
+
+narrate "You find a treasure chest!";
+
+if inventory_slots > 0 then {
+    narrate "Added sword to inventory!";
+    inventory_slots = inventory_slots - 1 qty;
+} else {
+    narrate "Inventory is full!";
+}
+
+if inventory_slots > 0 then {
+    narrate "Added shield to inventory!";
+    inventory_slots = inventory_slots - 1 qty;
+} else {
+    narrate "No more room!";
+}
+
+narrate "Remaining inventory slots: 1";

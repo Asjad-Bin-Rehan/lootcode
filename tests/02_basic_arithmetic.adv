@@ -1,0 +1,12 @@
+# Test 2: Basic Arithmetic
+# Tests: Arithmetic operations with stats and items
+
+item gold = 50 qty;
+item sword = 1 qty;
+stat player_hp = 75 hp;
+
+narrate "Starting game state:";
+player_hp = player_hp + 25 hp;
+gold = gold + 50 qty;
+
+narrate "Updated: HP is now 100, gold is now 100!";

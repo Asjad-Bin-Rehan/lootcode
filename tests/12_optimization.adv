@@ -1,0 +1,18 @@
+# Test 12: Optimization Test
+# Tests: Constant folding and dead code elimination
+
+stat health = 100 hp;
+
+narrate "Testing optimizer...";
+
+# This will be optimized: 50 + 50 = 100
+health = 50 hp + 50 hp;
+narrate "Health set to 100 via constant folding.";
+
+# Constant propagation
+stat unused = 999 hp;
+
+# Dead code: this assignment is never used
+unused = 500 hp;
+
+narrate "Optimization test complete!";

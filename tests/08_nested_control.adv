@@ -1,0 +1,20 @@
+# Test 8: Nested Control Flow
+# Tests: Loops and conditionals together
+
+stat room_counter = 0 qty;
+
+narrate "Exploring multi-level dungeon...";
+
+loop 3 iterations {
+    room_counter = room_counter + 1 qty;
+    narrate "Entering room...";
+    
+    if room_counter > 1 then {
+        narrate "Found treasure!";
+        rest 1 turns;
+    } else {
+        narrate "Room is empty.";
+    }
+}
+
+narrate "Dungeon exploration complete!";

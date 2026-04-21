@@ -1,0 +1,8 @@
+# Test 1: Simple Adventure
+# Tests: Basic item and stat declarations, narrate operation
+
+item health_potion = 3 qty;
+stat player_hp = 100 hp;
+
+narrate "You awaken in an ancient dungeon...";
+narrate "You have 3 health potions and 100 HP.";

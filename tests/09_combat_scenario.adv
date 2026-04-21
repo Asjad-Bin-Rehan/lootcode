@@ -1,0 +1,25 @@
+# Test 9: Combat Scenario
+# Tests: Full combat loop with HP management
+
+item health_potion = 3 qty;
+stat player_hp = 100 hp;
+stat enemy_hp = 50 hp;
+
+narrate "You encounter a goblin!";
+
+loop 5 iterations {
+    if player_hp > 0 then {
+        narrate "You attack the goblin!";
+        enemy_hp = enemy_hp - 10 hp;
+        rest 1 turns;
+        player_hp = player_hp + 5 hp;
+    } else {
+        narrate "You have been defeated!";
+    }
+}
+
+if enemy_hp <= 0 then {
+    narrate "Victory! The goblin is defeated!";
+} else {
+    narrate "The battle continues...";
+}

@@ -1,0 +1,12 @@
+# Test 5: Combine Items
+# Tests: Combine operation for merging items
+
+item herbs = 5 qty;
+item potion_base = 3 qty;
+
+narrate "In the alchemist's lab...";
+narrate "You have herbs and potion base.";
+
+combine herbs with potion_base;
+
+narrate "Successfully combined ingredients!";
