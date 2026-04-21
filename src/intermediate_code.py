@@ -73,6 +73,8 @@ class TACInstruction:
             return f"power_up {self.arg1} by {self.arg2}"
         elif self.op == 'acquire':
             return f"acquire {self.arg1} to {self.arg2}"
+        elif self.op == 'discard':
+            return f"discard {self.arg1}"
         elif self.op == 'input':
             return f"input {self.result}"
         elif self.op == 'begin_quest':
@@ -182,6 +184,10 @@ class IntermediateCodeGenerator:
     def visit_AcquireOperation(self, node):
         """Visit acquire operation"""
         self.emit('acquire', node.item, node.target)
+
+    def visit_DiscardOperation(self, node):
+        """Visit discard operation"""
+        self.emit('discard', node.item)
     
     def visit_LoopStatement(self, node):
         """

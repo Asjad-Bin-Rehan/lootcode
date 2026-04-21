@@ -17,6 +17,21 @@ from intermediate_code import IntermediateCodeGenerator
 from optimizer import Optimizer
 from code_generator import CodeGenerator
 
+
+def print_quick_start(parser):
+    """Show concise usage guidance for first-time users."""
+    print("\nQuick start:")
+    print("  1) Run an existing sample program")
+    print("     python adventurescript.py tests\\01_simple_adventure.adv")
+    print("  2) Start interactive mode")
+    print("     python adventurescript.py --interactive")
+    print("  3) Run with debug phases")
+    print("     python adventurescript.py tests\\01_simple_adventure.adv --debug")
+    print("  4) Export TAC to a file")
+    print("     python adventurescript.py tests\\01_simple_adventure.adv -o output.tac")
+    print("\nTip: 'game.adv' in examples means any .adv file path you actually have.")
+    print("Use --help for the full option list.")
+
 def print_separator(title):
     """Print section separator"""
     print("\n" + "=" * 60)
@@ -166,9 +181,9 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog='''
 Examples:
-  %(prog)s game.adv                    # Compile and run
-  %(prog)s game.adv -o output.tac      # Compile to file
-  %(prog)s game.adv --debug            # Show TAC (intermediate code)
+    %(prog)s tests/01_simple_adventure.adv                    # Compile and run
+    %(prog)s tests/01_simple_adventure.adv -o output.tac      # Compile to file
+    %(prog)s tests/01_simple_adventure.adv --debug            # Show TAC (intermediate code)
   %(prog)s --interactive               # Interactive mode (REPL)
         '''
     )
@@ -243,9 +258,9 @@ Examples:
             print(f"[ERROR] Error: {e}")
             sys.exit(1)
     else:
-        # No input and no --interactive flag, show help
-        parser.print_help()
-        sys.exit(1)
+        # No input and no --interactive flag: show concise quick-start help.
+        print_quick_start(parser)
+        sys.exit(0)
 
 if __name__ == "__main__":
     main()

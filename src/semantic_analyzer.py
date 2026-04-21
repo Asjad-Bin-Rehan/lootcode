@@ -13,7 +13,7 @@ class SymbolTable:
         self.scope_level = 0
         self.current_quest = None
     
-    def declare(self, name, var_type, line=0, is_parameter=False, quest_name=None):
+    def declare(self, name, var_type, line=0, is_parameter=False, quest_name=None, unit=None):
         """Declare a new variable"""
         # For quest parameters and local variables, include quest name in qualified name
         if self.scope_level > 0 and quest_name:
@@ -34,7 +34,8 @@ class SymbolTable:
             'line': line,
             'original_name': name,
             'is_parameter': is_parameter,
-            'quest_name': quest_name
+            'quest_name': quest_name,
+            'unit': unit,
         }
     
     def lookup(self, name, line=0):
@@ -150,9 +151,10 @@ class SemanticAnalyzer:
     
     def visit_Declaration(self, node):
         """Visit declaration node"""
+        unit = self._extract_declared_unit(node.value)
         # Declare variable in symbol table
         line = getattr(node, 'line', 0)
-        self.symbol_table.declare(node.name, node.var_type, line)
+        self.symbol_table.declare(node.name, node.var_type, line, unit=unit)
         
         # Check value type compatibility
         self.visit(node.value)
@@ -229,6 +231,12 @@ class SemanticAnalyzer:
         # Check both items exist
         self.symbol_table.lookup(node.item)
         self.symbol_table.lookup(node.target)
+
+    def visit_DiscardOperation(self, node):
+        """Visit discard operation"""
+        var_info = self.symbol_table.lookup(node.item)
+        if var_info['type'] != TokenType.ITEM:
+            self.error(f"Cannot discard non-item: {node.item}")
     
     def visit_LoopStatement(self, node):
         """Visit loop statement (adventure theme: repeat)"""
@@ -357,5 +365,88 @@ class SemanticAnalyzer:
         if not self.current_quest:
             self.error("Return statement outside quest")
         
+        expected = self.quest_table.get(self.current_quest, {}).get('return_type')
+
         if node.value:
             self.visit(node.value)
+            if expected:
+                actual_type, actual_unit = self.infer_expr_type(node.value)
+                if not self._is_return_compatible(expected, actual_type, actual_unit):
+                    self.error(
+                        f"Quest '{self.current_quest}' return type mismatch: expected {expected}, got {actual_type}{f' ({actual_unit})' if actual_unit else ''}"
+                    )
+        elif expected:
+            self.error(f"Quest '{self.current_quest}' must return a value")
+
+    def _extract_declared_unit(self, value_node):
+        """Extract declared unit from a declaration value when available."""
+        if isinstance(value_node, Value):
+            return value_node.unit
+        return None
+
+    def infer_expr_type(self, node):
+        """Infer (base_type, unit) for an expression node."""
+        if isinstance(node, Value):
+            inner_type, _ = self.infer_expr_type(node.number)
+            return inner_type, node.unit
+
+        if isinstance(node, Number):
+            return 'NUMBER', None
+
+        if isinstance(node, String):
+            return TokenType.TEXT, None
+
+        if isinstance(node, Identifier):
+            var_info = self.symbol_table.lookup(node.name)
+            return var_info['type'], var_info.get('unit')
+
+        if isinstance(node, QuestCall):
+            quest = self.quest_table.get(node.name)
+            if not quest:
+                return 'UNKNOWN', None
+            return quest.get('return_type') or 'UNKNOWN', None
+
+        if isinstance(node, BinaryOp):
+            left_type, left_unit = self.infer_expr_type(node.left)
+            right_type, right_unit = self.infer_expr_type(node.right)
+
+            if node.op in [TokenType.EQ, TokenType.NEQ, TokenType.GT, TokenType.LT, TokenType.GTE, TokenType.LTE]:
+                return 'BOOL', None
+
+            # Arithmetic operations
+            if left_type == right_type:
+                return left_type, left_unit or right_unit
+            return 'NUMBER', left_unit or right_unit
+
+        return 'UNKNOWN', None
+
+    def _is_return_compatible(self, expected, actual_type, actual_unit):
+        """Validate quest return compatibility for both type and unit-style declarations."""
+        unit_like = {
+            TokenType.QTY, TokenType.QTY_UNIT, TokenType.COUNT,
+            TokenType.HP, TokenType.MP,
+            TokenType.TURNS_UNIT, TokenType.SECONDS, TokenType.HOURS,
+            TokenType.GOLD, TokenType.TREASURE, TokenType.COIN, TokenType.LOOT, TokenType.GEMS,
+        }
+
+        if expected in [TokenType.ITEM, TokenType.STAT, TokenType.QTY, TokenType.TEXT]:
+            if actual_type == expected:
+                return True
+            if expected == TokenType.STAT and actual_unit in [TokenType.HP, TokenType.MP]:
+                return True
+            if expected == TokenType.QTY and (actual_unit in unit_like or actual_type == 'NUMBER'):
+                return True
+            return False
+
+        if expected in unit_like:
+            if actual_unit is not None:
+                return actual_unit == expected
+
+            # Allow typed variables whose unit is implicit by domain.
+            if actual_type == TokenType.STAT and expected in [TokenType.HP, TokenType.MP]:
+                return True
+            if actual_type in [TokenType.ITEM, TokenType.QTY, 'NUMBER'] and expected in unit_like:
+                return True
+            return False
+
+        return actual_type == expected

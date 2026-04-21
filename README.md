@@ -60,6 +60,12 @@ Optimizer checks:
 python test_optimizer_phase4.py
 ```
 
+Proposal-alignment checks:
+
+```powershell
+python test_proposal_alignment.py
+```
+
 ## Input and Output
 
 Input:

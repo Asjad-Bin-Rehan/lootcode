@@ -27,6 +27,7 @@ class TokenType(Enum):
     IF = auto()
     THEN = auto()
     ELSE = auto()
+    END = auto()
     ITERATIONS = auto()
     IN = auto()
     
@@ -128,6 +129,7 @@ KEYWORDS = {
     'if': TokenType.IF,
     'then': TokenType.THEN,
     'else': TokenType.ELSE,
+    'end': TokenType.END,
     'iterations': TokenType.ITERATIONS,
     'in': TokenType.IN,
     'quest': TokenType.QUEST,
@@ -145,7 +147,7 @@ KEYWORDS = {
     'coin': TokenType.COIN,
     'loot': TokenType.LOOT,
     'gems': TokenType.GEMS,
-    'qty': TokenType.QTY_UNIT,
+    'qty': TokenType.QTY,
     'count': TokenType.COUNT,
     'hp': TokenType.HP,
     'mp': TokenType.MP,

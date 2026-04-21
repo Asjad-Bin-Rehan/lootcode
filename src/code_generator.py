@@ -373,6 +373,11 @@ class CodeGenerator:
             msg = f"Acquiring {instr.arg1} to {instr.arg2}"
             self.output.append(msg)
             print(msg)
+
+        elif instr.op == 'discard':
+            msg = f"Discarding {instr.arg1}"
+            self.output.append(msg)
+            print(msg)
         
         elif instr.op == 'input':
             # Prompt user for input

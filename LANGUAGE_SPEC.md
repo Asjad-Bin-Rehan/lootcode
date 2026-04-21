@@ -9,9 +9,9 @@ Programs declare values, perform adventure operations, and use control flow.
 
 ### 2.1 Core Keywords
 
-- Types: `item`, `stat`, `text`
-- Operations: `combine`, `equip`, `rest`, `narrate`, `show`, `power_up`, `acquire`
-- Control: `loop`, `iterations`, `if`, `then`, `else`
+- Types: `item`, `stat`, `text`, `qty`
+- Operations: `combine`, `equip`, `rest`, `narrate`, `show`, `power_up`, `acquire`, `discard`
+- Control: `loop`, `iterations`, `if`, `then`, `else`, `end`
 - Functions: `quest`, `return`, `returns`
 - Input: `input`
 - Prepositions: `to`, `with`, `by`
@@ -60,6 +60,7 @@ narrate "A shadow moves...";
 show player_hp;
 power_up potion by 2;
 acquire key to inventory;
+discard broken_key;
 ```
 
 ### Control Flow
@@ -74,12 +75,18 @@ if player_hp > 0 then {
 } else {
     narrate "Defeated";
 }
+
+if player_hp > 0 then
+    narrate "Still alive";
+else
+    narrate "Defeated";
+end
 ```
 
 ### Quests
 
 ```adventurescript
-quest heal(stat hp_value) returns stat {
+quest heal(stat hp_value) returns hp {
     return hp_value;
 }
 

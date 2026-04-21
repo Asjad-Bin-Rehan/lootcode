@@ -7,7 +7,7 @@ from token_types import TokenType
 
 UNIT_TOKENS = {
     TokenType.GOLD, TokenType.TREASURE, TokenType.COIN, TokenType.LOOT, TokenType.GEMS,
-    TokenType.QTY_UNIT, TokenType.COUNT, TokenType.HP, TokenType.MP,
+    TokenType.QTY, TokenType.QTY_UNIT, TokenType.COUNT, TokenType.HP, TokenType.MP,
     TokenType.TURNS_UNIT, TokenType.SECONDS, TokenType.HOURS
 }
 
@@ -64,6 +64,10 @@ class AcquireOperation(ASTNode):
     def __init__(self, item, target):
         self.item = item
         self.target = target
+
+class DiscardOperation(ASTNode):
+    def __init__(self, item):
+        self.item = item
 
 class LoopStatement(ASTNode):
     def __init__(self, count, body):
@@ -214,6 +218,8 @@ class Parser:
             return self.parse_power_up()
         if self.current_token.type == TokenType.ACQUIRE:
             return self.parse_acquire()
+        if self.current_token.type == TokenType.DISCARD:
+            return self.parse_discard()
         
         # Control flow
         if self.current_token.type == TokenType.LOOP:
@@ -268,7 +274,7 @@ class Parser:
         # Check if there's a unit after the expression
         if self.current_token and self.current_token.type in [
             TokenType.GOLD, TokenType.TREASURE, TokenType.COIN, TokenType.LOOT, TokenType.GEMS,
-            TokenType.QTY_UNIT, TokenType.COUNT, TokenType.HP, TokenType.MP,
+            TokenType.QTY, TokenType.QTY_UNIT, TokenType.COUNT, TokenType.HP, TokenType.MP,
             TokenType.TURNS_UNIT, TokenType.SECONDS, TokenType.HOURS
         ]:
             unit = self.current_token.type
@@ -343,6 +349,13 @@ class Parser:
         self.expect(TokenType.SEMICOLON)
         
         return AcquireOperation(item, target)
+
+    def parse_discard(self):
+        """Parse discard operation"""
+        self.expect(TokenType.DISCARD)
+        item = self.expect_identifier_like().value
+        self.expect(TokenType.SEMICOLON)
+        return DiscardOperation(item)
     
     def parse_loop(self):
         """Parse loop statement"""
@@ -365,26 +378,49 @@ class Parser:
         self.expect(TokenType.IF)
         condition = self.parse_condition()
         self.expect(TokenType.THEN)
-        self.expect(TokenType.LBRACE)
-        
+
+        # Support both block styles:
+        # 1) if cond then { ... } else { ... }
+        # 2) if cond then ... else ... end
         then_body = []
-        while self.current_token and self.current_token.type != TokenType.RBRACE:
-            stmt = self.parse_statement()
-            if stmt:
-                then_body.append(stmt)
-        
-        self.expect(TokenType.RBRACE)
-        
-        else_body = None
-        if self.current_token and self.current_token.type == TokenType.ELSE:
+        then_braced = False
+        if self.current_token and self.current_token.type == TokenType.LBRACE:
+            then_braced = True
             self.advance()
-            self.expect(TokenType.LBRACE)
-            else_body = []
             while self.current_token and self.current_token.type != TokenType.RBRACE:
                 stmt = self.parse_statement()
                 if stmt:
-                    else_body.append(stmt)
+                    then_body.append(stmt)
             self.expect(TokenType.RBRACE)
+        else:
+            while self.current_token and self.current_token.type not in [TokenType.ELSE, TokenType.END]:
+                stmt = self.parse_statement()
+                if stmt:
+                    then_body.append(stmt)
+
+        else_body = None
+        else_braced = False
+        if self.current_token and self.current_token.type == TokenType.ELSE:
+            self.advance()
+            else_body = []
+
+            if self.current_token and self.current_token.type == TokenType.LBRACE:
+                else_braced = True
+                self.advance()
+                while self.current_token and self.current_token.type != TokenType.RBRACE:
+                    stmt = self.parse_statement()
+                    if stmt:
+                        else_body.append(stmt)
+                self.expect(TokenType.RBRACE)
+            else:
+                while self.current_token and self.current_token.type != TokenType.END:
+                    stmt = self.parse_statement()
+                    if stmt:
+                        else_body.append(stmt)
+
+        uses_end_terminator = (not then_braced) or (else_body is not None and not else_braced)
+        if uses_end_terminator:
+            self.expect(TokenType.END)
         
         return IfStatement(condition, then_body, else_body)
     
@@ -486,8 +522,7 @@ class Parser:
         if self.current_token and self.current_token.type == TokenType.RETURNS:
             self.advance()
             return_type = self.current_token.type
-            if return_type not in [TokenType.ITEM, TokenType.STAT, 
-                                  TokenType.QTY, TokenType.TEXT]:
+            if return_type not in [TokenType.ITEM, TokenType.STAT, TokenType.QTY, TokenType.TEXT] and return_type not in UNIT_TOKENS:
                 self.error(f"Expected type after 'returns', got {return_type}")
             self.advance()
         

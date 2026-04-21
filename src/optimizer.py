@@ -10,7 +10,7 @@ class Optimizer:
             'label', 'goto', 'if_false', 'if_true', 'begin_quest', 'end_quest'
         }
         self.side_effect_ops = {
-            'narrate', 'show', 'rest', 'combine', 'equip', 'acquire', 'power_up',
+            'narrate', 'show', 'rest', 'combine', 'equip', 'acquire', 'discard', 'power_up',
             'input', 'call', 'return', 'param', 'print'
         }
     
