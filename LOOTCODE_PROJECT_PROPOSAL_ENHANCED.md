@@ -13,16 +13,6 @@
 
 ---
 
-## Team Members
-
-| Student Name | Student ID |
-|---|---|
-| Abubakar Ahmad | 23K-0801 |
-| Asjad Bin Rehan | 23K-0502 |
-| Muhammad Zohib | 23K-0602 |
-
----
-
 ## 1. Language Concept
 
 **LootCode** is a high-level domain-specific language (DSL) designed to simplify the creation of text-based adventure games and interactive fiction in a retro 8-bit computing style. The language abstracts away low-level implementation details while providing game designers with intuitive constructs for defining game state (items, stats), interactions (combining items, equipping gear), narrative elements (narration, dialogue), and control flow (loops, conditionals).

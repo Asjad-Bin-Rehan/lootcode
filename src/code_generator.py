@@ -9,8 +9,7 @@ class CodeGenerator:
         self.output = []
         self.pc = 0  # Program counter
         self.labels = {}  # Label positions
-        self.recipes = {}  # Recipe definitions
-        self.call_stack = []  # Function call stack
+        self.recipes = {}  # Quest definitions
         self.param_stack = []  # Parameter stack
     
     def execute(self, instructions):
@@ -53,6 +52,49 @@ class CodeGenerator:
             self.pc += 1
         
         return self.output
+
+    def _to_number_and_unit(self, value):
+        """Convert runtime value into (number, unit) where unit may be None."""
+        if isinstance(value, bool):
+            return int(value), None
+
+        if isinstance(value, (int, float)):
+            return float(value), None
+
+        if isinstance(value, str):
+            text = value.strip()
+            parts = text.split()
+
+            if len(parts) == 2:
+                try:
+                    return float(parts[0]), parts[1]
+                except ValueError:
+                    pass
+
+            try:
+                return float(text), None
+            except ValueError:
+                pass
+
+        raise Exception(f"Runtime Error: Non-numeric value used in arithmetic/comparison: {value}")
+
+    def _format_number(self, number):
+        """Return int when possible to keep cleaner output values."""
+        if isinstance(number, float) and number.is_integer():
+            return int(number)
+        return number
+
+    def _compose_value(self, number, unit=None):
+        """Compose runtime value from number and optional unit."""
+        formatted = self._format_number(number)
+        if unit:
+            return f"{formatted} {unit}"
+        return formatted
+
+    def _require_compatible_units(self, unit1, unit2, op):
+        """Ensure units are compatible for operation."""
+        if unit1 and unit2 and unit1 != unit2:
+            raise Exception(f"Runtime Error: Unit mismatch for {op}: {unit1} vs {unit2}")
     
     def execute_instruction(self, instr, instructions=None):
         """Execute single TAC instruction"""
@@ -97,10 +139,17 @@ class CodeGenerator:
                 parts = value.split(None, 1)
                 if parts[0] in self.variables:
                     resolved_value = self.variables[parts[0]]
-                    value = f"{resolved_value} {parts[1]}"
+                    # If resolved value already carries a unit, avoid duplicating unit suffixes.
+                    if isinstance(resolved_value, str) and len(resolved_value.split()) == 2:
+                        value = resolved_value
+                    else:
+                        value = f"{resolved_value} {parts[1]}"
                 elif parts[0].startswith('t') and parts[0][1:].isdigit() and parts[0] in self.variables:
                     resolved_value = self.variables[parts[0]]
-                    value = f"{resolved_value} {parts[1]}"
+                    if isinstance(resolved_value, str) and len(resolved_value.split()) == 2:
+                        value = resolved_value
+                    else:
+                        value = f"{resolved_value} {parts[1]}"
             elif isinstance(value, str) and value.startswith('t') and value[1:].isdigit():
                 if value in self.variables:
                     value = self.variables[value]
@@ -110,120 +159,96 @@ class CodeGenerator:
         elif instr.op == 'add':
             val1 = self.get_value(instr.arg1)
             val2 = self.get_value(instr.arg2)
-            self.variables[instr.result] = val1 + val2
+            num1, unit1 = self._to_number_and_unit(val1)
+            num2, unit2 = self._to_number_and_unit(val2)
+            self._require_compatible_units(unit1, unit2, 'add')
+            self.variables[instr.result] = self._compose_value(num1 + num2, unit1 or unit2)
         
         elif instr.op == 'sub':
             val1 = self.get_value(instr.arg1)
             val2 = self.get_value(instr.arg2)
-            self.variables[instr.result] = val1 - val2
+            num1, unit1 = self._to_number_and_unit(val1)
+            num2, unit2 = self._to_number_and_unit(val2)
+            self._require_compatible_units(unit1, unit2, 'sub')
+            self.variables[instr.result] = self._compose_value(num1 - num2, unit1 or unit2)
         
         elif instr.op == 'mul':
             val1 = self.get_value(instr.arg1)
             val2 = self.get_value(instr.arg2)
-            # Handle string values (extract numeric part)
-            if isinstance(val1, str) and ' ' in val1:
-                try:
-                    val1 = float(val1.split()[0])
-                except (ValueError, IndexError):
-                    pass
-            if isinstance(val2, str) and ' ' in val2:
-                try:
-                    val2 = float(val2.split()[0])
-                except (ValueError, IndexError):
-                    pass
-            self.variables[instr.result] = val1 * val2
+            num1, unit1 = self._to_number_and_unit(val1)
+            num2, unit2 = self._to_number_and_unit(val2)
+            if unit1 and unit2:
+                raise Exception(f"Runtime Error: Unsupported multiplication between unit values: {unit1} * {unit2}")
+            self.variables[instr.result] = self._compose_value(num1 * num2, unit1 or unit2)
         
         elif instr.op == 'div':
             val1 = self.get_value(instr.arg1)
             val2 = self.get_value(instr.arg2)
-            # Handle string values (extract numeric part)
-            if isinstance(val1, str) and ' ' in val1:
-                try:
-                    val1 = float(val1.split()[0])
-                except (ValueError, IndexError):
-                    pass
-            if isinstance(val2, str) and ' ' in val2:
-                try:
-                    val2 = float(val2.split()[0])
-                except (ValueError, IndexError):
-                    pass
-            if val2 == 0:
+            num1, unit1 = self._to_number_and_unit(val1)
+            num2, unit2 = self._to_number_and_unit(val2)
+            if unit2:
+                raise Exception(f"Runtime Error: Unsupported division by unit value: {unit2}")
+            if num2 == 0:
                 raise Exception("Runtime Error: Division by zero")
-            self.variables[instr.result] = val1 / val2
+            self.variables[instr.result] = self._compose_value(num1 / num2, unit1)
         
         elif instr.op == 'eq':
             val1 = self.get_value(instr.arg1)
             val2 = self.get_value(instr.arg2)
-            self.variables[instr.result] = 1 if val1 == val2 else 0
+            try:
+                num1, unit1 = self._to_number_and_unit(val1)
+                num2, unit2 = self._to_number_and_unit(val2)
+                if (unit1 or unit2) and unit1 != unit2:
+                    self.variables[instr.result] = 0
+                else:
+                    self.variables[instr.result] = 1 if num1 == num2 else 0
+            except Exception:
+                self.variables[instr.result] = 1 if val1 == val2 else 0
         
         elif instr.op == 'neq':
             val1 = self.get_value(instr.arg1)
             val2 = self.get_value(instr.arg2)
-            self.variables[instr.result] = 1 if val1 != val2 else 0
+            try:
+                num1, unit1 = self._to_number_and_unit(val1)
+                num2, unit2 = self._to_number_and_unit(val2)
+                if (unit1 or unit2) and unit1 != unit2:
+                    self.variables[instr.result] = 1
+                else:
+                    self.variables[instr.result] = 1 if num1 != num2 else 0
+            except Exception:
+                self.variables[instr.result] = 1 if val1 != val2 else 0
         
         elif instr.op == 'gt':
             val1 = self.get_value(instr.arg1)
             val2 = self.get_value(instr.arg2)
-            # Handle string values (extract numeric part)
-            if isinstance(val1, str) and ' ' in val1:
-                try:
-                    val1 = float(val1.split()[0])
-                except (ValueError, IndexError):
-                    pass
-            if isinstance(val2, str) and ' ' in val2:
-                try:
-                    val2 = float(val2.split()[0])
-                except (ValueError, IndexError):
-                    pass
-            self.variables[instr.result] = 1 if val1 > val2 else 0
+            num1, unit1 = self._to_number_and_unit(val1)
+            num2, unit2 = self._to_number_and_unit(val2)
+            self._require_compatible_units(unit1, unit2, 'gt')
+            self.variables[instr.result] = 1 if num1 > num2 else 0
         
         elif instr.op == 'lt':
             val1 = self.get_value(instr.arg1)
             val2 = self.get_value(instr.arg2)
-            # Handle string values (extract numeric part)
-            if isinstance(val1, str) and ' ' in val1:
-                try:
-                    val1 = float(val1.split()[0])
-                except (ValueError, IndexError):
-                    pass
-            if isinstance(val2, str) and ' ' in val2:
-                try:
-                    val2 = float(val2.split()[0])
-                except (ValueError, IndexError):
-                    pass
-            self.variables[instr.result] = 1 if val1 < val2 else 0
+            num1, unit1 = self._to_number_and_unit(val1)
+            num2, unit2 = self._to_number_and_unit(val2)
+            self._require_compatible_units(unit1, unit2, 'lt')
+            self.variables[instr.result] = 1 if num1 < num2 else 0
         
         elif instr.op == 'gte':
             val1 = self.get_value(instr.arg1)
             val2 = self.get_value(instr.arg2)
-            # Handle string values (extract numeric part)
-            if isinstance(val1, str) and ' ' in val1:
-                try:
-                    val1 = float(val1.split()[0])
-                except (ValueError, IndexError):
-                    pass
-            if isinstance(val2, str) and ' ' in val2:
-                try:
-                    val2 = float(val2.split()[0])
-                except (ValueError, IndexError):
-                    pass
-            self.variables[instr.result] = 1 if val1 >= val2 else 0
+            num1, unit1 = self._to_number_and_unit(val1)
+            num2, unit2 = self._to_number_and_unit(val2)
+            self._require_compatible_units(unit1, unit2, 'gte')
+            self.variables[instr.result] = 1 if num1 >= num2 else 0
         
         elif instr.op == 'lte':
             val1 = self.get_value(instr.arg1)
             val2 = self.get_value(instr.arg2)
-            # Handle string values (extract numeric part)
-            if isinstance(val1, str) and ' ' in val1:
-                try:
-                    val1 = float(val1.split()[0])
-                except (ValueError, IndexError):
-                    pass
-            if isinstance(val2, str) and ' ' in val2:
-                try:
-                    val2 = float(val2.split()[0])
-                except (ValueError, IndexError):
-                    pass
-            self.variables[instr.result] = 1 if val1 <= val2 else 0
+            num1, unit1 = self._to_number_and_unit(val1)
+            num2, unit2 = self._to_number_and_unit(val2)
+            self._require_compatible_units(unit1, unit2, 'lte')
+            self.variables[instr.result] = 1 if num1 <= num2 else 0
         
         elif instr.op == 'label':
             pass  # Labels are handled in first pass

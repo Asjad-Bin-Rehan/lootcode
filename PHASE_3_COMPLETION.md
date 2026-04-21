@@ -1,167 +1,92 @@
-# Phase 3 - Semantic Analyzer Refactoring ✅ COMPLETE
+# Phase 3 - Semantic and Runtime Type/Unit Safety ✅ COMPLETE
 
-**Date Completed:** 20 April 2026
+**Date Completed:** 21 April 2026
 **Status:** 100% Complete
-**Test Results:** 10/10 PASS
+**Validation Results:** 12/12 suite PASS, semantic checks PASS
 
 ---
 
 ## Summary
 
-Phase 3 successfully refactored the Semantic Analyzer to support the LootCode adventure game theme instead of cooking recipes. All visitor methods have been renamed, validation rules updated, and the module is fully compatible with the refactored parser and lexer from Phases 1-2.
+Phase 3 is complete for the current plan scope. This cycle finalized semantic/runtime safety for unit-bearing values and removed remaining runtime type failures in advanced scenarios (combat/inventory/full game). The codebase now executes all canonical adventure tests successfully.
 
 ---
 
 ## Changes Made
 
-### 1. Module Documentation Updated
-- Updated module docstring from "RecipeScript" to "LootCode"
-- Added "Validates adventure game syntax and semantics"
+### 1. Semantic Token Consistency Fix
+- Updated input declaration typing in `src/semantic_analyzer.py`
+- Replaced invalid token usage:
+	- `TokenType.QUANTITY` -> `TokenType.QTY`
+- This removes a latent semantic inconsistency and aligns declarations with active token definitions.
 
-### 2. SymbolTable Class Refactored
-- `current_recipe` → `current_quest`
-- `recipe_name` parameter → `quest_name` parameter
-- Updated all references in `declare()` method
-- Updated all references in `lookup()` method
-- Updated display method to show `QUEST` instead of `RECIPE`
+### 2. Runtime Unit-Safe Arithmetic Model Implemented
+Implemented robust numeric+unit handling in `src/code_generator.py`:
+- Added `_to_number_and_unit(value)` for safe parsing of values like:
+	- `100`, `100.0`, `"100 hp"`, `"3 qty_unit"`
+- Added `_format_number(number)` and `_compose_value(number, unit)` for stable storage/output formatting.
+- Added `_require_compatible_units(unit1, unit2, op)` for runtime unit checks.
 
-### 3. SemanticAnalyzer Class Refactored
-- `recipe_table` → `quest_table`
-- `current_recipe` → `current_quest`
-- Initialization of `symbol_table.current_recipe` → `symbol_table.current_quest`
+### 3. Assignment Safety Improvement
+- Updated assignment resolution logic to avoid duplicate unit suffixes (for example `"40 hp hp"`).
+- If a resolved temp value already carries a unit, it is preserved as-is.
 
-### 4. Visitor Methods Renamed (11 total)
-| Old Name | New Name | Purpose |
-|----------|----------|---------|
-| `visit_MixOperation()` | `visit_CombineOperation()` | Combine items in adventure |
-| `visit_HeatOperation()` | `visit_EquipOperation()` | Equip player stats |
-| `visit_WaitOperation()` | `visit_RestOperation()` | Rest for turns |
-| `visit_ServeOperation()` | `visit_NarrateOperation()` | Narrate story text |
-| `visit_DisplayOperation()` | `visit_ShowOperation()` | Show variables |
-| `visit_ScaleOperation()` | `visit_PowerUpOperation()` | Power up items |
-| `visit_AddOperation()` | `visit_AcquireOperation()` | Acquire items |
-| `visit_RepeatStatement()` | `visit_LoopStatement()` | Loop iterations |
-| `visit_WhenStatement()` | `visit_IfStatement()` | If-then-else |
-| `visit_RecipeDeclaration()` | `visit_QuestDeclaration()` | Quest functions |
-| `visit_RecipeCall()` | `visit_QuestCall()` | Quest calls |
+### 4. Arithmetic/Comparison Operations Hardened
+Updated TAC operation handlers to operate on parsed numeric values with unit compatibility checks:
+- `add`, `sub`, `mul`, `div`
+- `eq`, `neq`, `gt`, `lt`, `gte`, `lte`
 
-### 5. Validation Rules Updated
-- **Temperature ranges removed:** No longer validates Fahrenheit/Celsius ranges
-- **Stat ranges added:** Stats (hp/mp) must be within 0-999
-- **Item type validation:** Combine operations only work on ITEM types
-- **Duration validation:** Rest duration must be positive
-- **Loop count validation:** Loop iterations must be positive
+Behavior rules now include:
+- Add/sub require compatible units when both sides have units.
+- Mul rejects unit*unit multiplication (unsupported).
+- Div rejects division by unit-bearing divisor (unsupported).
+- Comparisons are numeric and unit-aware; incompatible units raise a runtime unit mismatch for ordered comparisons.
 
-### 6. Error Messages Updated
-- "Recipe" → "Quest"
-- "Ingredient" → "Item"
-- "Serving" → "Narrating"
-- "Recipe declaration" → "Quest declaration"
-- All error messages now use adventure vocabulary
+### 5. Runtime Failures Eliminated
+Resolved previously observed failures:
+- `unsupported operand type(s) for -: 'str' and 'str'`
+- `can only concatenate str (not "int") to str`
 
-### 7. Symbol Table References Updated
-- Parser still uses `.recipes` attribute (contains QuestDeclaration objects)
-- Semantic analyzer handles this compatibility correctly
-- Node attribute names fixed: `ingredients` → `items`, `value` → `stat_value`, etc.
+Affected tests now passing:
+- `09_combat_scenario.adv`
+- `10_inventory.adv`
+- `11_full_game.adv`
+
+### 6. Files Modified
+1. `src/code_generator.py`
+2. `src/semantic_analyzer.py`
 
 ---
 
-## Test Coverage
+## Validation
 
-### Tests Passing (10/10)
-✅ Combine operation - Items declared and combined correctly  
-✅ Equip operation - Stats equipped with valid values  
-✅ Equip stat validation - Stat range checking enabled  
-✅ Rest operation - Rest duration parsed correctly  
-✅ Narrate operation - Story text narrated  
-✅ Loop statement - Loop iterations with scope management  
-✅ If statement - Conditional logic with braces  
-✅ Quest call - Quest function invocations  
-✅ Symbol table creation - Variables properly scoped  
-✅ Symbol table display - Formatted output correct  
+### Compiler Test Suite
+From `tests/`:
+- `python run_all_tests.py`
+- Result: **12/12 PASS**
 
-### Files Modified
-- `src/semantic_analyzer.py` - Full refactoring to adventure theme
-
-### Test File
-- `test_semantic_phase3.py` - Comprehensive validation tests
+### Semantic Validation Script
+From project root:
+- `python test_semantic_phase3.py`
+- Result: **10/10 PASS** (with one pre-existing SKIP in that script)
 
 ---
 
-## Architectural Compatibility
+## Exit Criteria Check (Phase 3)
 
-✅ Parser integration: Works with QuestDeclaration nodes  
-✅ Lexer integration: Recognizes adventure tokens  
-✅ Type checking: ITEM and STAT types validated  
-✅ Scope management: Quest and nested block scopes handled  
-✅ Symbol table: Proper scope tracking maintained  
-✅ Error handling: Meaningful error messages with adventure vocabulary  
+1. Runtime errors from mixed string/int arithmetic are eliminated. ✅
+2. Complex scenarios (nested control, combat, full game) execute successfully. ✅
 
 ---
 
-## Scope Management
+## Remaining Work
 
-The semantic analyzer correctly handles:
-- **Global scope (level 0):** Top-level variables and quest definitions
-- **Quest scope (level 1+):** Quest parameters and local variables
-- **Block scope:** Loop and if-statement body scopes
-- **Scope lookup:** Proper variable resolution from inner to outer scopes
-
-Example symbol table output:
-```
-health_potion    ITEM     0    2     (global)
-player_hp        STAT     0    3     (global)
-```
-
----
-
-## Validation Rules
-
-### Type Checking
-- `combine` operations require ITEM types
-- `equip` operations work with STAT types
-- Variable types checked on lookup
-
-### Range Validation
-- Stats (hp, mp): 0-999
-- Rest duration: Must be positive
-- Loop count: Must be positive
-
-### Scope Rules
-- Variables declared once per scope
-- Lookups search from inner to outer scopes
-- Quest parameters scoped to quest
-
----
-
-## Performance
-
-- Single-pass semantic analysis
-- O(1) symbol lookup with scope qualification
-- No AST transformation required
-- Minimal memory overhead
-
----
-
-## Next Steps
-
-### Phase 4: Intermediate Code (TAC)
-- Rename TAC instruction names
-- Update TAC generation for new operation types
-- Estimated time: 1-2 hours
-
-### Phase 5: Code Generation  
-- Update execution messages
-- Update TAC interpretation engine
-- Estimated time: 1-2 hours
-
-### Blockers
-None - Phase 3 complete and verified!
+Phase 3 scope is complete. Next phase is Phase 4 (TAC and optimizer alignment), including cleanup of stale operation-name assumptions in optimizer logic.
 
 ---
 
 ## Conclusion
 
-Phase 3 is now 100% complete. The Semantic Analyzer has been fully refactored to support the LootCode adventure game language theme while preserving all underlying functionality and architectural principles. All 10 test cases pass successfully.
+Phase 3 is now complete for the current project plan. Semantic consistency and runtime unit/value safety have been implemented and verified, and all canonical tests now pass.
 
 **Status: READY FOR PHASE 4** ✅

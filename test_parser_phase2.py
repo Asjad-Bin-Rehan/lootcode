@@ -153,8 +153,34 @@ try:
     parser = Parser(tokens)
     ast = parser.parse()
     print(f"[OK] Successfully parsed quest declaration")
-    print(f"   Quest name: {ast.quests[0].name}")
-    print(f"   Quest body: {len(ast.quests[0].body)} statements")
+    print(f"   Quest name: {ast.recipes[0].name}")
+    print(f"   Quest body: {len(ast.recipes[0].body)} statements")
+except Exception as e:
+    print(f"[FAIL] Parse failed: {e}")
+
+# Test 11: Parse identifier that collides with unit keyword
+print("\n[TEST 11] Parse declaration/assignment for identifier-like keyword token")
+code10 = "item gold = 50 qty; gold = gold + 50 qty;"
+try:
+    lexer = Lexer(code10)
+    tokens = lexer.tokenize()
+    parser = Parser(tokens)
+    ast = parser.parse()
+    print(f"[OK] Successfully parsed identifier collision case")
+    print(f"   Statements parsed: {len(ast.statements)}")
+except Exception as e:
+    print(f"[FAIL] Parse failed: {e}")
+
+# Test 12: Parse unit-bearing arithmetic expression
+print("\n[TEST 12] Parse unit-bearing arithmetic expression")
+code11 = "stat health = 100 hp; health = 50 hp + 50 hp;"
+try:
+    lexer = Lexer(code11)
+    tokens = lexer.tokenize()
+    parser = Parser(tokens)
+    ast = parser.parse()
+    print(f"[OK] Successfully parsed unit-bearing arithmetic")
+    print(f"   Statements parsed: {len(ast.statements)}")
 except Exception as e:
     print(f"[FAIL] Parse failed: {e}")
 

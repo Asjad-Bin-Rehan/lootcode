@@ -13,6 +13,8 @@ from compiler import run_file
 
 def main():
     """Run all test files"""
+    test_dir = os.path.dirname(os.path.abspath(__file__))
+
     test_files = [
         '01_simple_adventure.adv',
         '02_basic_arithmetic.adv',
@@ -26,6 +28,7 @@ def main():
         '10_inventory.adv',
         '11_full_game.adv',
         '12_optimization.adv',
+        'dungeon.adv',
     ]
     
     print("=" * 60)
@@ -35,11 +38,12 @@ def main():
     results = []
     
     for test_file in test_files:
-        if os.path.exists(test_file):
+        full_path = os.path.join(test_dir, test_file)
+        if os.path.exists(full_path):
             print(f"\n{'=' * 60}")
             print(f"Running: {test_file}")
             print(f"{'=' * 60}")
-            success = run_file(test_file)
+            success = run_file(full_path)
             results.append((test_file, success))
         else:
             print(f"\n[ERROR] Test file not found: {test_file}")

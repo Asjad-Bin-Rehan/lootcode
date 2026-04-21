@@ -5,6 +5,14 @@ Phase 2: Builds Abstract Syntax Tree from tokens
 
 from token_types import TokenType
 
+UNIT_TOKENS = {
+    TokenType.GOLD, TokenType.TREASURE, TokenType.COIN, TokenType.LOOT, TokenType.GEMS,
+    TokenType.QTY_UNIT, TokenType.COUNT, TokenType.HP, TokenType.MP,
+    TokenType.TURNS_UNIT, TokenType.SECONDS, TokenType.HOURS
+}
+
+IDENTIFIER_LIKE_TOKENS = {TokenType.IDENTIFIER} | UNIT_TOKENS
+
 class ASTNode:
     """Base class for AST nodes"""
     pass
@@ -139,6 +147,20 @@ class Parser:
         token = self.current_token
         self.advance()
         return token
+
+    def expect_identifier_like(self):
+        """Consume identifier-like token.
+
+        We allow unit-keyword tokens as names in declaration/assignment contexts,
+        so programs can use practical identifiers like `gold`.
+        """
+        if not self.current_token or self.current_token.type not in IDENTIFIER_LIKE_TOKENS:
+            self.error(
+                f"Expected identifier, got {self.current_token.type if self.current_token else 'EOF'}"
+            )
+        token = self.current_token
+        self.advance()
+        return token
     
     def parse(self):
         """Parse entire program"""
@@ -200,7 +222,7 @@ class Parser:
             return self.parse_if()
         
         # Assignment or quest call
-        if self.current_token.type == TokenType.IDENTIFIER:
+        if self.current_token.type in IDENTIFIER_LIKE_TOKENS:
             # Look ahead to check if it's a quest call
             if self.pos + 1 < len(self.tokens) and self.tokens[self.pos + 1].type == TokenType.LPAREN:
                 return self.parse_quest_call_statement()
@@ -212,7 +234,7 @@ class Parser:
         """Parse input statement"""
         line = self.current_token.line
         self.expect(TokenType.INPUT)
-        var_name = self.expect(TokenType.IDENTIFIER).value
+        var_name = self.expect_identifier_like().value
         self.expect(TokenType.SEMICOLON)
         return InputStatement(var_name, line)
     
@@ -222,7 +244,7 @@ class Parser:
         var_type = self.current_token.type
         self.advance()
         
-        name = self.expect(TokenType.IDENTIFIER).value
+        name = self.expect_identifier_like().value
         self.expect(TokenType.ASSIGN)
         value = self.parse_value()
         self.expect(TokenType.SEMICOLON)
@@ -231,8 +253,7 @@ class Parser:
     
     def parse_assignment(self):
         """Parse assignment statement"""
-        name = self.current_token.value
-        self.advance()
+        name = self.expect_identifier_like().value
         self.expect(TokenType.ASSIGN)
         value = self.parse_value()
         self.expect(TokenType.SEMICOLON)
@@ -260,11 +281,11 @@ class Parser:
     def parse_combine(self):
         """Parse combine operation"""
         self.expect(TokenType.COMBINE)
-        items = [self.expect(TokenType.IDENTIFIER).value]
+        items = [self.expect_identifier_like().value]
         
         while self.current_token and self.current_token.type == TokenType.WITH:
             self.advance()
-            items.append(self.expect(TokenType.IDENTIFIER).value)
+            items.append(self.expect_identifier_like().value)
         
         self.expect(TokenType.SEMICOLON)
         return CombineOperation(items)
@@ -272,7 +293,7 @@ class Parser:
     def parse_equip(self):
         """Parse equip operation"""
         self.expect(TokenType.EQUIP)
-        target = self.expect(TokenType.IDENTIFIER).value
+        target = self.expect_identifier_like().value
         self.expect(TokenType.TO)
         stat_value = self.parse_value()
         self.expect(TokenType.SEMICOLON)
@@ -298,7 +319,7 @@ class Parser:
     def parse_show(self):
         """Parse show operation"""
         self.expect(TokenType.SHOW)
-        variable = self.expect(TokenType.IDENTIFIER).value
+        variable = self.expect_identifier_like().value
         self.expect(TokenType.SEMICOLON)
         
         return ShowOperation(variable)
@@ -306,7 +327,7 @@ class Parser:
     def parse_power_up(self):
         """Parse power_up operation"""
         self.expect(TokenType.POWER_UP)
-        item = self.expect(TokenType.IDENTIFIER).value
+        item = self.expect_identifier_like().value
         self.expect(TokenType.BY)
         factor = self.expect(TokenType.NUMBER).value
         self.expect(TokenType.SEMICOLON)
@@ -316,9 +337,9 @@ class Parser:
     def parse_acquire(self):
         """Parse acquire operation"""
         self.expect(TokenType.ACQUIRE)
-        item = self.expect(TokenType.IDENTIFIER).value
+        item = self.expect_identifier_like().value
         self.expect(TokenType.TO)
-        target = self.expect(TokenType.IDENTIFIER).value
+        target = self.expect_identifier_like().value
         self.expect(TokenType.SEMICOLON)
         
         return AcquireOperation(item, target)
@@ -410,9 +431,16 @@ class Parser:
         if self.current_token.type == TokenType.NUMBER:
             value = self.current_token.value
             self.advance()
+
+            # Support unit-bearing literals inside expressions, e.g. 50 hp + 50 hp
+            if self.current_token and self.current_token.type in UNIT_TOKENS:
+                unit = self.current_token.type
+                self.advance()
+                return Value(Number(value), unit)
+
             return Number(value)
         
-        if self.current_token.type == TokenType.IDENTIFIER:
+        if self.current_token.type in IDENTIFIER_LIKE_TOKENS:
             # Check if it's a quest call
             if self.pos + 1 < len(self.tokens) and self.tokens[self.pos + 1].type == TokenType.LPAREN:
                 return self.parse_quest_call()
@@ -432,7 +460,7 @@ class Parser:
         """Parse quest declaration"""
         line = self.current_token.line
         self.expect(TokenType.QUEST)
-        name = self.expect(TokenType.IDENTIFIER).value
+        name = self.expect_identifier_like().value
         self.expect(TokenType.LPAREN)
         
         # Parse parameters
@@ -444,7 +472,7 @@ class Parser:
                                      TokenType.QTY, TokenType.TEXT]:
                     self.error(f"Expected type in parameter, got {param_type}")
                 self.advance()
-                param_name = self.expect(TokenType.IDENTIFIER).value
+                param_name = self.expect_identifier_like().value
                 params.append({'type': param_type, 'name': param_name})
                 
                 if self.current_token.type != TokenType.COMMA:
@@ -476,7 +504,7 @@ class Parser:
     
     def parse_quest_call(self):
         """Parse quest call (as expression)"""
-        name = self.expect(TokenType.IDENTIFIER).value
+        name = self.expect_identifier_like().value
         self.expect(TokenType.LPAREN)
         
         # Parse arguments

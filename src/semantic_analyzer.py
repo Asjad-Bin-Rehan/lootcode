@@ -146,7 +146,7 @@ class SemanticAnalyzer:
         """Visit input statement"""
         # Declare input variable as quantity type
         line = getattr(node, 'line', 0)
-        self.symbol_table.declare(node.var_name, TokenType.QUANTITY, line)
+        self.symbol_table.declare(node.var_name, TokenType.QTY, line)
     
     def visit_Declaration(self, node):
         """Visit declaration node"""
