@@ -1,0 +1,50 @@
+graph TD
+    A["Symbol Table - Scope Stack Evolution"] --> B["Stage 1: After Line 1"]
+    A --> C["Stage 2: Inside Loop"]
+    A --> D["Stage 3: After Loop Exit"]
+    A --> E["Stage 4: Inside If Block"]
+    A --> F["Stage 5: After If Block Exits"]
+    
+    B --> B1["Scope 0 Global"]
+    B1 --> B1a["global_hp: stat, hp, 100"]
+    
+    C --> C1["Scope 0 Global"]
+    C1 --> C1a["global_hp: stat, hp, 100"]
+    C --> C2["Scope 1 Loop"]
+    C2 --> C2a["local_potion: item, qty, 5"]
+    
+    D --> D1["Scope 0 Global"]
+    D1 --> D1a["global_hp: stat, hp, 90"]
+    D --> D2["Scope 1 removed"]
+    
+    E --> E1["Scope 0 Global"]
+    E1 --> E1a["global_hp: stat, hp, 90"]
+    E --> E2["Scope 2 If Block"]
+    E2 --> E2a["battle_damage: stat, hp, 20"]
+    
+    F --> F1["Scope 0 Global"]
+    F1 --> F1a["global_hp: stat, hp, 90"]
+    F --> F2["Scope 2 removed"]
+    
+    style A fill:#e0f2f1
+    style B fill:#b2dfdb
+    style C fill:#b2dfdb
+    style D fill:#b2dfdb
+    style E fill:#b2dfdb
+    style F fill:#b2dfdb
+    style B1 fill:#80cbc4
+    style C1 fill:#80cbc4
+    style C2 fill:#4db6ac
+    style D1 fill:#80cbc4
+    style D2 fill:#ef9a9a
+    style E1 fill:#80cbc4
+    style E2 fill:#4db6ac
+    style F1 fill:#80cbc4
+    style F2 fill:#ef9a9a
+    style B1a fill:#c8e6c9
+    style C1a fill:#c8e6c9
+    style C2a fill:#a5d6a7
+    style D1a fill:#c8e6c9
+    style E1a fill:#c8e6c9
+    style E2a fill:#a5d6a7
+    style F1a fill:#c8e6c9

@@ -1,0 +1,27 @@
+graph LR
+    A["Source Code<br/>.adv file"] --> B["Phase 1:<br/>Lexical Analysis<br/>Lexer"]
+    B --> B_out["Tokens"]
+    B_out --> C["Phase 2:<br/>Syntax Analysis<br/>Parser"]
+    C --> C_out["Abstract Syntax Tree<br/>AST"]
+    C_out --> D["Phase 3:<br/>Semantic Analysis<br/>Analyzer"]
+    D --> D_out["Validated AST<br/>+ Symbol Table"]
+    D_out --> E["Phase 4:<br/>Code Generation<br/>TAC Generator"]
+    E --> E_out["Three-Address Code<br/>TAC"]
+    E_out --> F["Phase 5:<br/>Optimization<br/>Optimizer"]
+    F --> F_out["Optimized TAC"]
+    F_out --> G["Phase 6:<br/>Execution<br/>Runtime"]
+    G --> G_out["Program Output"]
+    
+    style A fill:#fff9c4
+    style B fill:#ffe082
+    style C fill:#ffcc80
+    style D fill:#ffb74d
+    style E fill:#ffa726
+    style F fill:#ff9800
+    style G fill:#f57c00
+    style B_out fill:#b3e5fc
+    style C_out fill:#b3e5fc
+    style D_out fill:#b3e5fc
+    style E_out fill:#b3e5fc
+    style F_out fill:#b3e5fc
+    style G_out fill:#b3e5fc

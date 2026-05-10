@@ -1,0 +1,40 @@
+graph TD
+    A["&lt;Program&gt;"] --> B["&lt;LoopStmt&gt;"]
+    
+    B --> C["loop"]
+    B --> D["2"]
+    B --> E["iterations"]
+    B --> F["&lt;Body&gt;"]
+    
+    F --> G["&lt;IfStmt&gt;"]
+    
+    G --> H["if"]
+    G --> I["&lt;Condition&gt;"]
+    G --> J["then"]
+    G --> K["&lt;Then Block&gt;"]
+    
+    I --> L["player_hp"]
+    I --> M["&gt;"]
+    I --> N["0"]
+    
+    K --> O["&lt;Operation&gt;"]
+    O --> P["narrate"]
+    O --> Q["Attack!"]
+    
+    style A fill:#e1f5ff
+    style B fill:#b3e5fc
+    style F fill:#b3e5fc
+    style G fill:#b3e5fc
+    style I fill:#b3e5fc
+    style K fill:#b3e5fc
+    style O fill:#b3e5fc
+    style C fill:#fff9c4
+    style D fill:#fff9c4
+    style E fill:#fff9c4
+    style H fill:#fff9c4
+    style J fill:#fff9c4
+    style L fill:#fff9c4
+    style M fill:#fff9c4
+    style N fill:#fff9c4
+    style P fill:#fff9c4
+    style Q fill:#fff9c4

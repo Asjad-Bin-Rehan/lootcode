@@ -1,0 +1,30 @@
+stateDiagram-v2
+    [*] --> START
+    
+    START --> IDENTIFIER: [a-zA-Z_]
+    IDENTIFIER --> IDENTIFIER: [a-zA-Z0-9_]
+    IDENTIFIER --> START: delimiter/operator
+    
+    START --> NUMBER: [0-9]
+    NUMBER --> NUMBER: [0-9]
+    NUMBER --> DECIMAL: '.'
+    NUMBER --> START: delimiter/operator
+    DECIMAL --> DECIMAL_FRAC: [0-9]
+    DECIMAL_FRAC --> DECIMAL_FRAC: [0-9]
+    DECIMAL_FRAC --> START: delimiter/operator
+    
+    START --> STRING: '"'
+    STRING --> STRING: [^"]
+    STRING --> START: '"'
+    
+    START --> OPERATOR_STATE: [+*/<>=!]
+    OPERATOR_STATE --> START: emit operator
+    
+    START --> DELIMITER_STATE: [;,(){}]
+    DELIMITER_STATE --> START: emit delimiter
+    
+    START --> COMMENT: '#'
+    COMMENT --> COMMENT: [^\n]
+    COMMENT --> START: '\n'
+    
+    START --> START: whitespace

@@ -1,0 +1,34 @@
+graph TD
+    A["Filled Symbol Table - All Stages"] 
+    
+    A --> S1["Stage 1: After Line 1<br/>(Global Scope Only)"]
+    A --> S2["Stage 2: Inside Loop<br/>(2 Scopes)"]
+    A --> S3["Stage 3: After Loop Exit<br/>(Global Only, Updated)"]
+    A --> S4["Stage 4: Inside If Block<br/>(2 Scopes)"]
+    A --> S5["Stage 5: After If Block Exits<br/>(Global Only)"]
+    
+    S1 --> S1T["<b>Scope 0 (Global)</b><br/>global_hp | stat | hp | 100 | Line 1"]
+    
+    S2 --> S2A["<b>Scope 0 (Global)</b><br/>global_hp | stat | hp | 100 | Line 1"]
+    S2 --> S2B["<b>Scope 1 (Loop)</b><br/>local_potion | item | qty | 5 | Line 4"]
+    
+    S3 --> S3T["<b>Scope 0 (Global)</b><br/>global_hp | stat | hp | 90 | Line 1<br/><i>Updated Value!</i>"]
+    
+    S4 --> S4A["<b>Scope 0 (Global)</b><br/>global_hp | stat | hp | 90 | Line 1"]
+    S4 --> S4B["<b>Scope 2 (If Block)</b><br/>battle_damage | stat | hp | 20 | Line 8"]
+    
+    S5 --> S5T["<b>Scope 0 (Global)</b><br/>global_hp | stat | hp | 90 | Line 1"]
+    
+    style A fill:#e0f2f1
+    style S1 fill:#b2dfdb
+    style S2 fill:#b2dfdb
+    style S3 fill:#b2dfdb
+    style S4 fill:#b2dfdb
+    style S5 fill:#b2dfdb
+    style S1T fill:#80cbc4
+    style S2A fill:#80cbc4
+    style S2B fill:#4db6ac
+    style S3T fill:#ffccbc
+    style S4A fill:#80cbc4
+    style S4B fill:#4db6ac
+    style S5T fill:#80cbc4

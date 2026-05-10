@@ -1,0 +1,34 @@
+graph TD
+    A["Symbol Table Progression<br/>With Filled Entries"]
+    
+    A --> B["Stage 1: After Line 1"]
+    A --> C["Stage 2: Inside Loop"]
+    A --> D["Stage 3: After Loop Exit"]
+    A --> E["Stage 4: Inside If Block"]
+    A --> F["Stage 5: After If Block Exits"]
+    
+    B --> B1["┌─────────────────────────────────┐<br/>│ SCOPE 0 Global - Line 1           │<br/>├─────────────────────────────────┤<br/>│ Name: global_hp                   │<br/>│ Type: stat                        │<br/>│ Unit: hp                          │<br/>│ Value: 100                        │<br/>│ Line: 1                           │<br/>│ Scope: 0                          │<br/>└─────────────────────────────────┘"]
+    
+    C --> C1["┌─────────────────────────────────┐<br/>│ SCOPE 0 Global - Line 1           │<br/>├─────────────────────────────────┤<br/>│ Name: global_hp                   │<br/>│ Type: stat                        │<br/>│ Unit: hp                          │<br/>│ Value: 100                        │<br/>│ Line: 1                           │<br/>│ Scope: 0                          │<br/>└─────────────────────────────────┘"]
+    C --> C2["┌─────────────────────────────────┐<br/>│ SCOPE 1 Loop - Line 4             │<br/>├─────────────────────────────────┤<br/>│ Name: local_potion                │<br/>│ Type: item                        │<br/>│ Unit: qty                         │<br/>│ Value: 5                          │<br/>│ Line: 4                           │<br/>│ Scope: 1                          │<br/>└─────────────────────────────────┘"]
+    
+    D --> D1["┌─────────────────────────────────┐<br/>│ SCOPE 0 Global - Updated!         │<br/>├─────────────────────────────────┤<br/>│ Name: global_hp                   │<br/>│ Type: stat                        │<br/>│ Unit: hp                          │<br/>│ Value: 90 ← Changed from 100      │<br/>│ Line: 1                           │<br/>│ Scope: 0                          │<br/>├─────────────────────────────────┤<br/>│ Scope 1 REMOVED ✗                 │<br/>└─────────────────────────────────┘"]
+    
+    E --> E1["┌─────────────────────────────────┐<br/>│ SCOPE 0 Global - Line 1           │<br/>├─────────────────────────────────┤<br/>│ Name: global_hp                   │<br/>│ Type: stat                        │<br/>│ Unit: hp                          │<br/>│ Value: 90                         │<br/>│ Line: 1                           │<br/>│ Scope: 0                          │<br/>└─────────────────────────────────┘"]
+    E --> E2["┌─────────────────────────────────┐<br/>│ SCOPE 2 If Block - Line 8         │<br/>├─────────────────────────────────┤<br/>│ Name: battle_damage               │<br/>│ Type: stat                        │<br/>│ Unit: hp                          │<br/>│ Value: 20                         │<br/>│ Line: 8                           │<br/>│ Scope: 2                          │<br/>└─────────────────────────────────┘"]
+    
+    F --> F1["┌─────────────────────────────────┐<br/>│ SCOPE 0 Global - Final            │<br/>├─────────────────────────────────┤<br/>│ Name: global_hp                   │<br/>│ Type: stat                        │<br/>│ Unit: hp                          │<br/>│ Value: 90                         │<br/>│ Line: 1                           │<br/>│ Scope: 0                          │<br/>├─────────────────────────────────┤<br/>│ Scope 2 REMOVED ✗                 │<br/>└─────────────────────────────────┘"]
+    
+    style A fill:#e0f2f1,stroke:#333,stroke-width:2px
+    style B fill:#b2dfdb,stroke:#333,stroke-width:2px
+    style C fill:#b2dfdb,stroke:#333,stroke-width:2px
+    style D fill:#ffe0b2,stroke:#333,stroke-width:2px
+    style E fill:#b2dfdb,stroke:#333,stroke-width:2px
+    style F fill:#b2dfdb,stroke:#333,stroke-width:2px
+    style B1 fill:#c8e6c9,stroke:#2e7d32,stroke-width:1px
+    style C1 fill:#c8e6c9,stroke:#2e7d32,stroke-width:1px
+    style C2 fill:#a5d6a7,stroke:#558b2f,stroke-width:1px
+    style D1 fill:#ffccbc,stroke:#d84315,stroke-width:1px
+    style E1 fill:#c8e6c9,stroke:#2e7d32,stroke-width:1px
+    style E2 fill:#a5d6a7,stroke:#558b2f,stroke-width:1px
+    style F1 fill:#c8e6c9,stroke:#2e7d32,stroke-width:1px
