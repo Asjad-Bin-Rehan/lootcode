@@ -21,6 +21,11 @@ class Program(ASTNode):
     def __init__(self, recipes, statements):
         self.recipes = recipes
         self.statements = statements
+        
+    def __repr__(self):
+        from parser import print_ast
+        print_ast(self)
+        return ""
 
 class Declaration(ASTNode):
     def __init__(self, var_type, name, value, line=0):
@@ -89,7 +94,8 @@ class BinaryOp(ASTNode):
 class Number(ASTNode):
     def __init__(self, value):
         self.value = value
-
+    def __repr__(self):
+        return f"Number({self.value})"
 class String(ASTNode):
     def __init__(self, value):
         self.value = value
@@ -97,11 +103,16 @@ class String(ASTNode):
 class Identifier(ASTNode):
     def __init__(self, name):
         self.name = name
+    def __repr__(self):
+        return f"Identifier({self.name})"
 
 class Value(ASTNode):
     def __init__(self, number, unit=None):
         self.number = number
         self.unit = unit
+        
+    def __repr__(self):
+        return f"Value({self.number}, {self.unit})"
 
 class InputStatement(ASTNode):
     def __init__(self, var_name, line=0):
@@ -570,3 +581,116 @@ class Parser:
         
         self.expect(TokenType.SEMICOLON)
         return ReturnStatement(value)
+
+def print_ast(node, indent=0):
+    """Pretty print AST as a tree"""
+
+    prefix = "  " * indent
+
+    if node is None:
+        print(prefix + "None")
+        return
+
+    # Program
+    if isinstance(node, Program):
+        print(prefix + "Program")
+        print(prefix + "  Recipes:")
+        for r in node.recipes:
+            print_ast(r, indent + 2)
+        print(prefix + "  Statements:")
+        for s in node.statements:
+            print_ast(s, indent + 2)
+
+    # Declarations
+    elif isinstance(node, Declaration):
+        print(prefix + f"Declaration({node.var_type}, {node.name}, {node.value})")
+
+    elif isinstance(node, Assignment):
+        print(prefix + f"Assignment({node.name})")
+        print_ast(node.value, indent + 1)
+
+    # Operations
+    elif isinstance(node, CombineOperation):
+        print(prefix + f"Combine({node.items})")
+
+    elif isinstance(node, EquipOperation):
+        print(prefix + f"Equip({node.target})")
+        print_ast(node.stat_value, indent + 1)
+
+    elif isinstance(node, RestOperation):
+        print(prefix + "Rest")
+        print_ast(node.duration, indent + 1)
+
+    elif isinstance(node, NarrateOperation):
+        print(prefix + f"Narrate(\"{node.message}\")")
+
+    elif isinstance(node, ShowOperation):
+        print(prefix + f"Show({node.variable})")
+
+    elif isinstance(node, PowerUpOperation):
+        print(prefix + f"PowerUp({node.item}, {node.factor})")
+
+    elif isinstance(node, AcquireOperation):
+        print(prefix + f"Acquire({node.item} -> {node.target})")
+
+    elif isinstance(node, DiscardOperation):
+        print(prefix + f"Discard({node.item})")
+
+    # Control flow
+    elif isinstance(node, LoopStatement):
+        print(prefix + f"Loop({node.count})")
+        for stmt in node.body:
+            print_ast(stmt, indent + 1)
+
+    elif isinstance(node, IfStatement):
+        print(prefix + "If")
+        print(prefix + " Condition:")
+        print_ast(node.condition, indent + 2)
+        print(prefix + " Then:")
+        for stmt in node.then_body:
+            print_ast(stmt, indent + 2)
+        if node.else_body:
+            print(prefix + " Else:")
+            for stmt in node.else_body:
+                print_ast(stmt, indent + 2)
+
+    # Expressions
+    elif isinstance(node, BinaryOp):
+        print(prefix + f"BinaryOp({node.op})")
+        print_ast(node.left, indent + 1)
+        print_ast(node.right, indent + 1)
+
+    elif isinstance(node, Number):
+        print(prefix + f"Number({node.value})")
+
+    elif isinstance(node, Identifier):
+        print(prefix + f"Identifier({node.name})")
+
+    elif isinstance(node, Value):
+        print(prefix + f"Value({node.number}, {node.unit})")
+
+    elif isinstance(node, String):
+        print(prefix + f"String({node.value})")
+
+    # Quests
+    elif isinstance(node, QuestDeclaration):
+        print(prefix + f"Quest({node.name})")
+        print(prefix + " Params:")
+        for p in node.params:
+            print(prefix + f"  - {p['type']} {p['name']}")
+        print(prefix + " Body:")
+        for stmt in node.body:
+            print_ast(stmt, indent + 2)
+
+    elif isinstance(node, QuestCall):
+        print(prefix + f"QuestCall({node.name})")
+        for arg in node.arguments:
+            print_ast(arg, indent + 1)
+
+    elif isinstance(node, ReturnStatement):
+        print(prefix + "Return")
+        if node.value:
+            print_ast(node.value, indent + 1)
+
+    else:
+        print(prefix + f"UnknownNode({type(node).__name__})")

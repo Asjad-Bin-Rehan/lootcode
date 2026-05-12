@@ -61,6 +61,7 @@ def compile_and_run(source_code, show_phases=True):
         if show_phases:
             print(f"Successfully parsed {len(ast.recipes)} quests and {len(ast.statements)} statements")
             print("Abstract Syntax Tree (AST) built successfully")
+            print(ast)
         
         # Phase 3: Semantic Analysis
         if show_phases:
