@@ -63,15 +63,36 @@ def compile_and_run(source_code, show_phases=True):
             print("Abstract Syntax Tree (AST) built successfully")
             print(ast)
         
+        # # Phase 3: Semantic Analysis
+        # if show_phases:
+        #     print_separator("3: SEMANTIC ANALYSIS")
+        # semantic_analyzer = SemanticAnalyzer()
+        # symbol_table = semantic_analyzer.analyze(ast)
+        # if show_phases:
+        #     symbol_table.display()
+        #     print("\nSemantic analysis completed successfully")
         # Phase 3: Semantic Analysis
         if show_phases:
             print_separator("3: SEMANTIC ANALYSIS")
+
         semantic_analyzer = SemanticAnalyzer()
         symbol_table = semantic_analyzer.analyze(ast)
-        if show_phases:
-            symbol_table.display()
-            print("\nSemantic analysis completed successfully")
-        
+
+        # Print symbol table
+        symbol_table.display()
+
+        # Print semantic errors (IMPORTANT)
+        print("\n=== Semantic Analysis Summary ===")
+
+        if semantic_analyzer.errors:
+            print(f"Total Errors: {len(semantic_analyzer.errors)}")
+            print("\nErrors:")
+            for err in semantic_analyzer.errors:
+                print(" -", err)
+        else:
+            print("No semantic errors detected.")
+
+        print("\nSemantic analysis completed successfully")
         # Phase 4: Intermediate Code Generation
         if show_phases:
             print_separator("4: INTERMEDIATE CODE GENERATION")
