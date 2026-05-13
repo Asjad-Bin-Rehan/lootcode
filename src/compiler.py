@@ -162,7 +162,6 @@ def interactive_mode():
             if not line.strip():
                 continue
             
-            # Compile and run the line
             compile_and_run(line, show_phases=False)
             
         except KeyboardInterrupt:
